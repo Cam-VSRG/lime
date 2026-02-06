@@ -165,9 +165,9 @@ class AudioDecoder
 		return switch (AudioBuffer.__getCodecFromBytes(bytes))
 		{
 			case WAVE: WaveDecoder.fromBytes(bytes);
-			case MP3: MP3Decoder.fromBytes(bytes);
+			case MPEG: MP3Decoder.fromBytes(bytes);
 			#if lime_vorbis
-			case OGG: VorbisDecoder.fromBytes(bytes);
+			case VORBIS: VorbisDecoder.fromBytes(bytes);
 			#end
 			case FLAC: FLACDecoder.fromBytes(bytes);
 			default: null;

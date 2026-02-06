@@ -203,13 +203,18 @@ class FlashAudioSource
 	public function setCurrentTime(value:Float):Float
 	{
 		pauseTime = value + parent.offset;
-		if (pauseTime < 0) pauseTime = 0;
+		if (pauseTime < 0 || !Math.isFinite(pauseTime)) pauseTime = 0;
 
 		#if flash
 		if (playing)
 		{
 			playing = false;
-			play();
+			if (pauseTime >= length && !completed)
+			{
+				completed = true;
+				resetTimer(0);
+			}
+			else play();
 		}
 		#end
 

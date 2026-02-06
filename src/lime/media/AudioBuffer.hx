@@ -1,7 +1,6 @@
 package lime.media;
 
 import haxe.Int64;
-import haxe.io.Bytes;
 import haxe.io.Path;
 import haxe.io.Input;
 import lime._internal.backend.native.NativeCFFI;
@@ -14,6 +13,7 @@ import lime.media.vorbis.VorbisFile;
 import lime.media.AudioManager;
 import lime.net.HTTPRequest;
 import lime.utils.ArrayBuffer;
+import lime.utils.Bytes;
 import lime.utils.Log;
 import lime.utils.UInt8Array;
 #if lime_vorbis
@@ -504,15 +504,22 @@ class AudioBuffer
 	**/
 	public static function getCodec(resource:Dynamic):AudioCodec
 	{
-		if (resource is Bytes)
+		if (resource is haxe.io.Bytes)
 		{
 			return __getCodecFromBytes(cast resource);
 		}
 		#if sys
+		#if android // aassets
+		else if (resource is String)
+		{
+			return __getCodecFromBytes(Bytes.fromFile(cast resource));
+		}
+		#else
 		else if (resource is String)
 		{
 			return __getCodecFromInput(File.read(cast resource, true));
 		}
+		#end
 		else if (resource is FileInput)
 		{
 			cast(resource, FileInput).seek(0, SeekBegin);
@@ -551,28 +558,31 @@ class AudioBuffer
 		{
 			var signature = bytes.getString(0, 4);
 
+			switch (signature.substr(0, 3)) {
+				case "ID3": return MPEG;
+			}
+
 			switch (signature) {
-				case "OggS": return OGG;
+				case "OggS":
+					var fmt = bytes.getString(28, 4);
+					if (fmt == "Opus") return OPUS;// OpusHead
+					else return VORBIS;
 				case "fLaC": return FLAC;
 				case "RIFF":
 					var fmt = bytes.getString(8, 4);
 					if (fmt == "WAVE") return WAVE;
-			}
-
-			switch (signature.substr(0, 3)) {
-				case "ID3": return MP3;
 			}
 		}
 		catch (e:Dynamic)
 		{
 			// if the bytes don't represent a valid UTF-8 string, getString()
 			// may throw an exception. in that case, we expect to end up in
-			// the default switch case below where it tries to detect MP3.
+			// the default switch case below where it tries to detect MPEG.
 		}
 
 		if (bytes.get(0) == 255) {
 			var b = bytes.get(1);
-			if (b == 251 || b == 250 || b == 243) return MP3;
+			if (b == 251 || b == 250 || b == 243) return MPEG;
 		}
 
 		return null;
@@ -587,39 +597,41 @@ class AudioBuffer
 		{
 			var signature = bytes.getString(0, 4);
 
+			switch (signature.substr(0, 3)) {
+				case "ID3": return MPEG;
+			}
+
 			switch (signature) {
-				case "OggS": return OGG;
+				case "OggS":
+					#if sys
+					if (input is FileInput) cast(input, FileInput).seek(24, SeekCur);
+					else
+					#end for (i in 0...24) input.readByte();
+
+					var fmt = input.readString(4);
+					if (fmt == "Opus") return OPUS;// OpusHead
+					else return VORBIS;
 				case "fLaC": return FLAC;
 				case "RIFF":
 					#if sys
-					if (input is FileInput)
-					{
-						cast(input, FileInput).seek(4, SeekCur);
-					}
+					if (input is FileInput) cast(input, FileInput).seek(4, SeekCur);
 					else
-					#end
-					{
-						for (i in 0...4) input.readByte();
-					}
+					#end for (i in 0...4) input.readByte();
 
 					var fmt = input.readString(4);
 					if (fmt == "WAVE") return WAVE;
-			}
-
-			switch (signature.substr(0, 3)) {
-				case "ID3": return MP3;
 			}
 		}
 		catch (e:Dynamic)
 		{
 			// if the bytes don't represent a valid UTF-8 string, getString()
 			// may throw an exception. in that case, we expect to end up in
-			// the default switch case below where it tries to detect MP3.
+			// the default switch case below where it tries to detect MPEG.
 		}
 
 		if (bytes.get(0) == 255) {
 			var b = bytes.get(1);
-			if (b == 251 || b == 250 || b == 243) return MP3;
+			if (b == 251 || b == 250 || b == 243) return MPEG;
 		}
 
 		return null;

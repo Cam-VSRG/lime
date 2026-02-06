@@ -239,13 +239,21 @@ class HTML5AudioSource
 	public function setCurrentTime(value:Float):Float
 	{
 		pauseTime = value + parent.offset;
+		if (pauseTime < 0 || !Math.isFinite(pauseTime)) pauseTime = 0;
 
 		#if lime_howlerjs
 		if (howl != null && id != -1)
 		{
-			if (pauseTime < 0 || !Math.isFinite(pauseTime)) pauseTime = 0;
-			else if (pauseTime > length) pauseTime = length;
 			howl.seek(pauseTime / 1000, id);
+			if (howl.playing(id))
+			{
+				if (pauseTime >= length && !completed)
+				{
+					completed = true;
+					resetTimer(0);
+				}
+				else resetTimer(Std.int((length - pauseTime - parent.offset) / howl.rate(id)));
+			}
 		}
 		#end
 
@@ -382,7 +390,7 @@ class HTML5AudioSource
 	public function getPlaying():Bool
 	{
 		#if lime_howlerjs
-		if (howl != null && id != -1) return howl.playing(id);
+		if (howl != null && id != -1) return !completed && howl.playing(id);
 		#end
 		return false;
 	}
