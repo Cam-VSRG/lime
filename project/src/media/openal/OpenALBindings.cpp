@@ -3435,6 +3435,48 @@ namespace lime {
 	}
 
 
+	value lime_alc_get_integer64v_soft (value device, int param, int size) {
+
+		#ifdef LIME_OPENALSOFT
+		ALCdevice* alcDevice = (ALCdevice*)val_data (device);
+
+		ALCint64SOFT* values = new ALCint64SOFT[size];
+		alcGetInteger64vSOFT (alcDevice, param, size, values);
+
+		value result = alloc_array (size * 2);
+
+		int idx = 0;
+		for (int i = 0; i < size; i++) {
+
+			val_array_set_i (result, idx++, alloc_int ((int)(values[i] >> 32)));
+			val_array_set_i (result, idx++, alloc_int ((int)(values[i])));
+
+		}
+
+		delete[] values;
+		return result;
+		#else
+		return alloc_array (0);
+		#endif
+
+	}
+
+
+	HL_PRIM varray* HL_NAME(hl_alc_get_integer64v_soft) (HL_CFFIPointer* device, int param, int size) {
+
+		#ifdef LIME_OPENALSOFT
+		ALCdevice* alcDevice = (ALCdevice*)device->ptr;
+
+		varray* result = hl_alloc_array (&hlt_i64, size);
+		alcGetInteger64vSOFT (alcDevice, param, size, hl_aptr (result, ALCint64SOFT));
+		return result;
+		#else
+		return hl_alloc_array (&hlt_i64, 0);
+		#endif
+
+	}
+
+
 	value lime_alc_get_string (value device, int param) {
 
 		ALCdevice* alcDevice = (ALCdevice*)val_data (device);
@@ -3458,6 +3500,7 @@ namespace lime {
 
 	value lime_alc_get_string_list (value device, int param) {
 
+		#ifdef ALC_ENUMERATE_ALL_EXT
 		ALCdevice* alcDevice = (ALCdevice*)val_data (device);
 		const char* values = alcGetString (alcDevice, param);
 
@@ -3482,12 +3525,16 @@ namespace lime {
 		}
 
 		return result;
+		#else
+		return alloc_array (0);
+		#endif
 
 	}
 
 
 	HL_PRIM varray* HL_NAME(hl_alc_get_string_list) (HL_CFFIPointer* device, int param) {
 
+		#ifdef ALC_ENUMERATE_ALL_EXT
 		ALCdevice* alcDevice = device ? (ALCdevice*)device->ptr : 0;
 		const char* values = alcGetString (alcDevice, param);
 
@@ -3514,6 +3561,9 @@ namespace lime {
 		}
 
 		return result;
+		#else
+		return hl_alloc_array (&hlt_bytes, 0);
+		#endif
 
 	}
 
@@ -3920,6 +3970,7 @@ namespace lime {
 	DEFINE_PRIME0 (lime_alc_get_current_context);
 	DEFINE_PRIME1 (lime_alc_get_error);
 	DEFINE_PRIME3 (lime_alc_get_integerv);
+	DEFINE_PRIME3 (lime_alc_get_integer64v_soft);
 	DEFINE_PRIME2 (lime_alc_get_string);
 	DEFINE_PRIME2 (lime_alc_get_string_list);
 	DEFINE_PRIME1 (lime_alc_make_context_current);
@@ -4049,6 +4100,7 @@ namespace lime {
 	DEFINE_HL_PRIM (_TCFFIPOINTER, hl_alc_get_current_context, _NO_ARG);
 	DEFINE_HL_PRIM (_I32, hl_alc_get_error, _TCFFIPOINTER);
 	DEFINE_HL_PRIM (_ARR, hl_alc_get_integerv, _TCFFIPOINTER _I32 _I32);
+	DEFINE_HL_PRIM (_ARR, hl_alc_get_integer64v_soft, _TCFFIPOINTER _I32 _I32);
 	DEFINE_HL_PRIM (_BYTES, hl_alc_get_string, _TCFFIPOINTER _I32);
 	DEFINE_HL_PRIM (_ARR, hl_alc_get_string_list, _TCFFIPOINTER _I32);
 	DEFINE_HL_PRIM (_BOOL, hl_alc_make_context_current, _TCFFIPOINTER);

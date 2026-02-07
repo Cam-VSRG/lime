@@ -107,7 +107,7 @@ class VorbisDecoder extends AudioDecoder
 	{
 		#if (lime_cffi && lime_vorbis)
 		pos = NativeCFFI.lime_vorbis_file_decode(handle, buffer, pos, len, bitsPerSample >> 3);
-		eof = pos < len;
+		eof = pos == 0;
 		return pos;
 		#else
 		return 0;

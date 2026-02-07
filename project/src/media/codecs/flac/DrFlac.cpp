@@ -37,6 +37,8 @@ namespace lime {
 
 	drflac* DrFlac::FromBytes (Bytes* bytes) {
 
+		if (!bytes) return 0;
+
 		drflac* pFlac = drflac_open_memory (bytes->b, bytes->length, NULL);
 		if (!pFlac) {
 			return 0;
@@ -56,8 +58,10 @@ namespace lime {
 
 		drflac* pFlac = drflac_open (DrFlac_FileRead, DrFlac_FileSeek, DrFlac_FileTell, file, NULL);
 		if (!pFlac) {
+
 			lime::fclose (file);
 			return 0;
+
 		}
 
 		return pFlac;
@@ -70,10 +74,10 @@ namespace lime {
 		if (!pFlac) return;
 
 		if (pFlac->bs.onRead == DrFlac_FileRead) {
+
 			FILE_HANDLE *file = (FILE_HANDLE*)pFlac->bs.pUserData;
-			if (file) {
-				lime::fclose (file);
-			}
+			if (file) lime::fclose (file);
+
 		}
 
 		//delete pFlac->bs.pUserData;

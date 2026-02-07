@@ -91,7 +91,7 @@ namespace lime {
 	}
 
 
-	value allocInt64 (ogg_int64_t val) {
+	value allocVorbisInt64 (ogg_int64_t val) {
 
 		ogg_int32_t low = val;
 		ogg_int32_t high = (val >> 32);
@@ -106,7 +106,7 @@ namespace lime {
 	}
 
 
-	vdynamic* hl_allocInt64 (ogg_int64_t val) {
+	vdynamic* hl_allocVorbisInt64 (ogg_int64_t val) {
 
 		ogg_int32_t low = val;
 		ogg_int32_t high = (val >> 32);
@@ -417,7 +417,7 @@ namespace lime {
 	value lime_vorbis_file_pcm_tell (value vorbisFile) {
 
 		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)val_data (vorbisFile);
-		return allocInt64 (ov_pcm_tell (file));
+		return allocVorbisInt64 (ov_pcm_tell (file));
 
 	}
 
@@ -425,7 +425,7 @@ namespace lime {
 	HL_PRIM vdynamic* HL_NAME(hl_vorbis_file_pcm_tell) (HL_CFFIPointer* vorbisFile) {
 
 		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)vorbisFile->ptr;
-		return hl_allocInt64 (ov_pcm_tell (file));
+		return hl_allocVorbisInt64 (ov_pcm_tell (file));
 
 	}
 
@@ -433,7 +433,7 @@ namespace lime {
 	value lime_vorbis_file_pcm_total (value vorbisFile, int bitstream) {
 
 		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)val_data (vorbisFile);
-		return allocInt64 (ov_pcm_total (file, bitstream));
+		return allocVorbisInt64 (ov_pcm_total (file, bitstream));
 
 	}
 
@@ -441,7 +441,7 @@ namespace lime {
 	HL_PRIM vdynamic* HL_NAME(hl_vorbis_file_pcm_total) (HL_CFFIPointer* vorbisFile, int bitstream) {
 
 		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)vorbisFile->ptr;
-		return hl_allocInt64 (ov_pcm_total (file, bitstream));
+		return hl_allocVorbisInt64 (ov_pcm_total (file, bitstream));
 
 	}
 
@@ -485,7 +485,7 @@ namespace lime {
 	value lime_vorbis_file_raw_tell (value vorbisFile) {
 
 		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)val_data (vorbisFile);
-		return allocInt64 (ov_raw_tell (file));
+		return allocVorbisInt64 (ov_raw_tell (file));
 
 	}
 
@@ -493,7 +493,7 @@ namespace lime {
 	HL_PRIM vdynamic* HL_NAME(hl_vorbis_file_raw_tell) (HL_CFFIPointer* vorbisFile) {
 
 		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)vorbisFile->ptr;
-		return hl_allocInt64 (ov_raw_tell (file));
+		return hl_allocVorbisInt64 (ov_raw_tell (file));
 
 	}
 
@@ -501,7 +501,7 @@ namespace lime {
 	value lime_vorbis_file_raw_total (value vorbisFile, int bitstream) {
 
 		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)val_data (vorbisFile);
-		return allocInt64 (ov_raw_total (file, bitstream));
+		return allocVorbisInt64 (ov_raw_total (file, bitstream));
 
 	}
 
@@ -509,7 +509,7 @@ namespace lime {
 	HL_PRIM vdynamic* HL_NAME(hl_vorbis_file_raw_total) (HL_CFFIPointer* vorbisFile, int bitstream) {
 
 		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)vorbisFile->ptr;
-		return hl_allocInt64 (ov_raw_total (file, bitstream));
+		return hl_allocVorbisInt64 (ov_raw_total (file, bitstream));
 
 	}
 

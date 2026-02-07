@@ -37,12 +37,16 @@ namespace lime {
 
 	drwav* DrWav::FromBytes (Bytes* bytes) {
 
+		if (!bytes) return 0;
+
 		drwav* pWav = new drwav;
 		memset (pWav, 0, sizeof (DrWav));
 
 		if (drwav_init_memory (pWav, bytes->b, bytes->length, NULL) == DRWAV_FALSE) {
+
 			delete pWav;
 			return 0;
+
 		}
 
 		return pWav;
@@ -61,9 +65,11 @@ namespace lime {
 		memset (pWav, 0, sizeof (DrWav));
 
 		if (drwav_init (pWav, DrWav_FileRead, DrWav_FileSeek, DrWav_FileTell, file, NULL) == DRWAV_FALSE) {
+
 			delete pWav;
 			lime::fclose (file);
 			return 0;
+
 		}
 
 		return pWav;
@@ -76,10 +82,10 @@ namespace lime {
 		if (!pWav) return;
 
 		if (pWav->onRead == DrWav_FileRead) {
+
 			FILE_HANDLE *file = (FILE_HANDLE*)pWav->pUserData;
-			if (file) {
-				lime::fclose (file);
-			}
+			if (file) lime::fclose (file);
+
 		}
 
 		//delete pWav->pUserData;

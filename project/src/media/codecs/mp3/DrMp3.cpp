@@ -37,12 +37,16 @@ namespace lime {
 
 	drmp3* DrMp3::FromBytes (Bytes* bytes) {
 
+		if (!bytes) return 0;
+
 		drmp3* pMp3 = new drmp3;
 		memset (pMp3, 0, sizeof (DrMp3));
 
 		if (drmp3_init_memory (pMp3, bytes->b, bytes->length, NULL) == DRMP3_FALSE) {
+
 			delete pMp3;
 			return 0;
+
 		}
 
 		return pMp3;
@@ -61,9 +65,11 @@ namespace lime {
 		memset (pMp3, 0, sizeof (DrMp3));
 
 		if (drmp3_init (pMp3, DrMp3_FileRead, DrMp3_FileSeek, DrMp3_FileTell, NULL, file, NULL) == DRMP3_FALSE) {
+
 			delete pMp3;
 			lime::fclose (file);
 			return 0;
+
 		}
 
 		return pMp3;
@@ -76,10 +82,10 @@ namespace lime {
 		if (!pMp3) return;
 
 		if (pMp3->onRead == DrMp3_FileRead) {
+
 			FILE_HANDLE *file = (FILE_HANDLE*)pMp3->pUserData;
-			if (file) {
-				lime::fclose (file);
-			}
+			if (file) lime::fclose (file);
+
 		}
 
 		//delete pMp3->pUserData;

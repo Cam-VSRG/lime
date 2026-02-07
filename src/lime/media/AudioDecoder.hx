@@ -4,16 +4,18 @@ import haxe.Int64;
 import haxe.io.Bytes;
 import lime._internal.format.Base64;
 import lime.utils.ArrayBuffer;
-#if sys
-import sys.io.File;
-#end
 #if (lime_cffi && !macro)
-import lime.media.decoders.WaveDecoder;
-import lime.media.decoders.MP3Decoder;
+#if lime_opus
+import lime.media.decoders.OpusDecoder;
+#end
 #if lime_vorbis
 import lime.media.decoders.VorbisDecoder;
 #end
+#if lime_drlibs
+import lime.media.decoders.WaveDecoder;
+import lime.media.decoders.MP3Decoder;
 import lime.media.decoders.FLACDecoder;
+#end
 #end
 
 @:access(lime.media.AudioBuffer)
@@ -164,12 +166,17 @@ class AudioDecoder
 		#if (lime_cffi && !macro)
 		return switch (AudioBuffer.__getCodecFromBytes(bytes))
 		{
-			case WAVE: WaveDecoder.fromBytes(bytes);
-			case MPEG: MP3Decoder.fromBytes(bytes);
+			#if lime_opus
+			case OPUS: OpusDecoder.fromBytes(bytes);
+			#end
 			#if lime_vorbis
 			case VORBIS: VorbisDecoder.fromBytes(bytes);
 			#end
+			#if lime_drlibs
+			case WAVE: WaveDecoder.fromBytes(bytes);
+			case MPEG: MP3Decoder.fromBytes(bytes);
 			case FLAC: FLACDecoder.fromBytes(bytes);
+			#end
 			default: null;
 		}
 		#else
@@ -183,26 +190,33 @@ class AudioDecoder
 		@param path The file path to the audio asset file.
 		@return An `AudioDecoder` instance.
 	**/
-	public static function fromFile(path:String, ?codec:AudioCodec):AudioDecoder
+	public static function fromFile(path:String):AudioDecoder
 	{
 		if (path == null) return null;
 
 		#if (lime_cffi && !macro)
 		var decoder:AudioDecoder;
 
-		decoder = WaveDecoder.fromFile(path);
+		#if lime_opus
+		decoder = OpusDecoder.fromFile(path);
 		if (decoder != null) return decoder;
-
-		decoder = MP3Decoder.fromFile(path);
-		if (decoder != null) return decoder;
+		#end
 
 		#if lime_vorbis
 		decoder = VorbisDecoder.fromFile(path);
 		if (decoder != null) return decoder;
 		#end
 
+		#if lime_drlibs
+		decoder = WaveDecoder.fromFile(path);
+		if (decoder != null) return decoder;
+
+		decoder = MP3Decoder.fromFile(path);
+		if (decoder != null) return decoder;
+
 		decoder = FLACDecoder.fromFile(path);
 		if (decoder != null) return decoder;
+		#end
 		#end
 
 		return null;
