@@ -132,6 +132,7 @@ class AudioSource
 	**/
 	public function load():Void
 	{
+		__backend.stop();
 		__backend.unload();
 		__backend.load();
 	}
