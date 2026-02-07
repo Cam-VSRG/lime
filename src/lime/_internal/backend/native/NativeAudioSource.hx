@@ -356,7 +356,7 @@ class NativeAudioSource
 		bufferLens = null;
 		bufferViews = null;
 
-		loopPoints[0] = loopPoints[1] = 0;
+		if (loopPoints != null) loopPoints[0] = loopPoints[1] = 0;
 		pauseSample = 0;
 	}
 
