@@ -1,6 +1,7 @@
 package lime.media.openal;
 
 #if (!lime_doc_gen || lime_openal)
+import haxe.Int64;
 import lime._internal.backend.native.NativeCFFI;
 import lime.system.CFFI;
 import lime.system.CFFIPointer;
@@ -158,6 +159,24 @@ class ALC
 		#else
 		return result;
 		#end
+		#else
+		return null;
+		#end
+	}
+
+	public static function getInteger64vSOFT(device:ALDevice, param:Int, size:Int):Array<Int64>
+	{
+		#if (lime_cffi && lime_openal && !macro)
+		var result = NativeCFFI.lime_alc_get_integer64v_soft(device, param, size);
+		if (result == null) return [];
+		var _result = [];
+		#if hl
+		for (i in 0...result.length) _result[i] = cast result[i];
+		#else
+		_result.resize(size);
+		for (i in 0...size) _result[i] = Int64.make(result[i * 2], result[i * 2 + 1]);
+		#end
+		return _result;
 		#else
 		return null;
 		#end

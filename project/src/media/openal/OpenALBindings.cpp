@@ -3456,7 +3456,7 @@ namespace lime {
 		delete[] values;
 		return result;
 		#else
-		return alloc_array (0);
+		return alloc_null ();
 		#endif
 
 	}
@@ -3471,7 +3471,7 @@ namespace lime {
 		alcGetInteger64vSOFT (alcDevice, param, size, hl_aptr (result, ALCint64SOFT));
 		return result;
 		#else
-		return hl_alloc_array (&hlt_i64, 0);
+		return NULL;
 		#endif
 
 	}

@@ -1684,6 +1684,8 @@ class NativeCFFI
 
 	@:cffi private static function lime_alc_get_integerv(device:CFFIPointer, param:Int, size:Int):Dynamic;
 
+	@:cffi private static function lime_alc_get_integer64v_soft(device:CFFIPointer, param:Int, size:Int):Dynamic;
+
 	@:cffi private static function lime_alc_get_string(device:CFFIPointer, param:Int):Dynamic;
 
 	@:cffi private static function lime_alc_get_string_list(device:CFFIPointer, param:Int):Dynamic;
@@ -1871,6 +1873,8 @@ class NativeCFFI
 	private static var lime_alc_get_error = new cpp.Callable<cpp.Object->Int>(cpp.Prime._loadPrime("lime", "lime_alc_get_error", "oi", false));
 	private static var lime_alc_get_integerv = new cpp.Callable<cpp.Object->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_alc_get_integerv",
 		"oiio", false));
+	private static var lime_alc_get_integer64v_soft = new cpp.Callable<cpp.Object->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_alc_get_integer64v_soft", "oiio", false));
 	private static var lime_alc_get_string = new cpp.Callable<cpp.Object->Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_alc_get_string", "oio", false));
 	private static var lime_alc_get_string_list = new cpp.Callable<cpp.Object->Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_alc_get_string_list", "oio", false));
 	private static var lime_alc_make_context_current = new cpp.Callable<cpp.Object->Bool>(cpp.Prime._loadPrime("lime", "lime_alc_make_context_current", "ob",
@@ -2006,6 +2010,7 @@ class NativeCFFI
 	private static var lime_alc_get_current_context = CFFI.load("lime", "lime_alc_get_current_context", 0);
 	private static var lime_alc_get_error = CFFI.load("lime", "lime_alc_get_error", 1);
 	private static var lime_alc_get_integerv = CFFI.load("lime", "lime_alc_get_integerv", 3);
+	private static var lime_alc_get_integer64v_soft = CFFI.load("lime", "lime_alc_get_integer64v_soft", 3);
 	private static var lime_alc_get_string = CFFI.load("lime", "lime_alc_get_string", 2);
 	private static var lime_alc_get_string_list = CFFI.load("lime", "lime_alc_get_string_list", 2);
 	private static var lime_alc_make_context_current = CFFI.load("lime", "lime_alc_make_context_current", 1);
@@ -2362,6 +2367,12 @@ class NativeCFFI
 	}
 
 	@:hlNative("lime", "hl_alc_get_integerv") private static function lime_alc_get_integerv(device:CFFIPointer, param:Int, size:Int):hl.NativeArray<Int>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_alc_get_integer64v_soft") private static function lime_alc_get_integer64v_soft(device:CFFIPointer, param:Int,
+			size:Int):hl.NativeArray<hl.I64>
 	{
 		return null;
 	}
