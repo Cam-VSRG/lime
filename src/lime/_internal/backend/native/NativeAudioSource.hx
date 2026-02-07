@@ -35,6 +35,9 @@ class NativeAudioSource
 	// how much buffers will be generating every frequency (doesnt have to be pow of 2?).
 	public static var STREAM_BUFFER_SAMPLES:Int = 0x4000;
 
+	// how much length in bytes can buffer hold maximum.
+	public static var STREAM_BUFFER_MAX_LENGTH:Int = 0x10000;
+
 	// how much buffers can a stream hold on minimum or starting.
 	public static var STREAM_MIN_BUFFERS:Int = 1;
 
@@ -248,8 +251,10 @@ class NativeAudioSource
 			standaloneDecoder = decoder != null;
 			if (!standaloneDecoder) decoder = parent.buffer.decoder;
 
-			buffers = AL.genBuffers(STREAM_FLUSH_BUFFERS);
 			bufferLen = (STREAM_BUFFER_SAMPLES * parent.buffer.channels) * (parent.buffer.bitsPerSample >> 3);
+			if (bufferLen > STREAM_BUFFER_MAX_LENGTH) bufferLen = STREAM_BUFFER_MAX_LENGTH;
+
+			buffers = AL.genBuffers(STREAM_FLUSH_BUFFERS);
 			bufferCurs = [for (i in 0...STREAM_MAX_BUFFERS) 0];
 			bufferLens = [for (i in 0...STREAM_MAX_BUFFERS) 0];
 			bufferViews = [];
