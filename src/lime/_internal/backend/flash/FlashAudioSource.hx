@@ -165,11 +165,12 @@ class FlashAudioSource
 			channel = null;
 		}
 
+		playing = false;
+
 		if (loops > 0)
 		{
 			loops--;
 			pauseTime = loopTime;
-			playing = false;
 			play();
 		}
 		else

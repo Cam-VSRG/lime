@@ -46,7 +46,7 @@ class HTML5AudioSource
 	public var id:Int;
 	public var howl:Howl;
 
-	private var needPlay:Bool;
+	private var playing:Bool;
 	private var analyserLeft:AnalyserNode;
 	private var analyserRight:AnalyserNode;
 	private var channelSplitter:ChannelSplitterNode;
@@ -87,7 +87,7 @@ class HTML5AudioSource
 			var source = this;
 			howl.on("load", function()
 			{
-				if (source.needPlay) source.play();
+				if (source.playing) source.play();
 			});
 			howl.load();
 		}
@@ -125,17 +125,15 @@ class HTML5AudioSource
 	{
 		#if lime_howlerjs
 		if (howl == null || (id != -1 && howl.playing(id))) return;
+
+		playing = true;
+		completed = false;
+
 		if (length == 0)
 		{
 			length = howl.duration() * 1000;
-			if (length == 0)
-			{
-				needPlay = true;
-				return;
-			}
+			if (length == 0) return;
 		}
-
-		completed = false;
 
 		var prevId = id;
 		if (prevId == -1) id = howl.play();
@@ -165,7 +163,7 @@ class HTML5AudioSource
 		{
 			pauseTime = 0;
 		}
-		needPlay = false;
+		playing = false;
 		stopTimer();
 		#end
 	}
@@ -179,7 +177,7 @@ class HTML5AudioSource
 		{
 			howl.stop(id);
 		}
-		needPlay = false;
+		playing = false;
 		stopTimer();
 		#end
 	}
@@ -229,6 +227,7 @@ class HTML5AudioSource
 		else
 		{
 			stopTimer();
+			playing = false;
 			completed = true;
 			pauseTime = 0;
 		}
@@ -241,11 +240,12 @@ class HTML5AudioSource
 	public function getCurrentTime():Float
 	{
 		#if lime_howlerjs
-		if (completed)
+		var loaded = howl != null && id != -1;
+		if (completed || loaded && playing && !howl.playing(id))
 		{
 			return length - parent.offset;
 		}
-		else if (howl != null && id != -1)
+		else if (loaded)
 		{
 			return howl.seek(id) * 1000 - parent.offset;
 		}
@@ -419,7 +419,7 @@ class HTML5AudioSource
 	public function getPlaying():Bool
 	{
 		#if lime_howlerjs
-		if (howl != null && id != -1) return !completed && howl.playing(id);
+		if (howl != null && id != -1) return playing && howl.playing(id);
 		#end
 		return false;
 	}

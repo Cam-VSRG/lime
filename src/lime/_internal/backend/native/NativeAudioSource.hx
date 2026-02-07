@@ -508,8 +508,14 @@ class NativeAudioSource
 
 	private function getCurrentSampleOffset():Int
 	{
-		if (completed) return loopPoints[1];
-		else if (!playing) return pauseSample;
+		if (completed || AL.getSourcei(source, AL.SOURCE_STATE) == AL.STOPPED && (!streamed || !streaming && streamEnded))
+		{
+			return loopPoints[1];
+		}
+		else if (!playing)
+		{
+			return pauseSample;
+		}
 
 		var sampleOffset:Int;
 		if (streamed)
