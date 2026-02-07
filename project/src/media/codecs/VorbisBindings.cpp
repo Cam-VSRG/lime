@@ -571,6 +571,8 @@ namespace lime {
 
 		}
 
+		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)val_data (vorbisFile);
+
 		Bytes bytes;
 		bytes.Set (buffer);
 
@@ -580,12 +582,9 @@ namespace lime {
 		#define BUFFER_READ_TYPE 0
 		#endif
 
-		int bitstream;
 		int size = 0;
-
-		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)val_data (vorbisFile);
 		while (size < length) {
-			long result = ov_read (file, (char*)bytes.b + position, length - size, BUFFER_READ_TYPE, word, 1, &bitstream);
+			long result = ov_read (file, (char*)bytes.b + position, length - size, BUFFER_READ_TYPE, word, 1, NULL);
 
 			if (result != OV_HOLE) {
 				if (result <= OV_EREAD) {
@@ -614,18 +613,17 @@ namespace lime {
 
 		}
 
+		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)vorbisFile->ptr;
+
 		#ifdef HXCPP_BIG_ENDIAN
 		#define BUFFER_READ_TYPE 1
 		#else
 		#define BUFFER_READ_TYPE 0
 		#endif
 
-		int bitstream;
 		int size = 0;
-
-		OggVorbis_File* file = (OggVorbis_File*)(uintptr_t)vorbisFile->ptr;
 		while (size < length) {
-			long result = ov_read (file, (char*)buffer->b + position, length - size, BUFFER_READ_TYPE, word, 1, &bitstream);
+			long result = ov_read (file, (char*)buffer->b + position, length - size, BUFFER_READ_TYPE, word, 1, NULL);
 
 			if (result != OV_HOLE) {
 				if (result <= OV_EREAD) {

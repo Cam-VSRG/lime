@@ -140,9 +140,8 @@ namespace lime {
 		length >>= 1;
 
 		int size = 0;
-		int li;
 		while (size < length) {
-			int result = op_read (of, (opus_int16*)bytes.b + position, length - size, &li);
+			int result = op_read (of, (opus_int16*)bytes.b + position, length - size, NULL);
 
 			if (result != OP_HOLE) {
 				if (result <= OP_EREAD) {
@@ -175,11 +174,12 @@ namespace lime {
 
 		OggOpusFile* of = (OggOpusFile*)(uintptr_t)opusFile->ptr;
 
-		int rate = op_channel_count (of, -1);
+		position >>= 1;
+		length >>= 1;
+
 		int size = 0;
-		int li;
 		while (size < length) {
-			int result = op_read (of, (opus_int16*)buffer->b + position, length - size, &li);
+			int result = op_read (of, (opus_int16*)buffer->b + position, length - size, NULL);
 
 			if (result != OP_HOLE) {
 				if (result <= OP_EREAD) {
@@ -189,14 +189,14 @@ namespace lime {
 					break;
 				}
 				else {
-					result *= rate;
+					result *= op_channel_count (of, -1);
 					size += result;
 					position += result;
 				}
 			}
 		}
 
-		return size;
+		return size << 1;
 	}
 
 
