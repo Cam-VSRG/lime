@@ -132,7 +132,22 @@ class FlashAudioSource
 		#end
 	}
 
-	public function prepare(time:Float):Void {}
+	public function prepare(time:Float):Void
+	{
+		playing = false;
+		pauseTime = value + parent.offset;
+		if (pauseTime < 0 || !Math.isFinite(pauseTime)) pauseTime = 0;
+
+		#if flash
+		if (channel != null)
+		{
+			channel.stop();
+			channel = null;
+		}
+		#end
+
+		return value;
+	}
 
 	// Event Handlers
 	private inline function stopTimer():Void

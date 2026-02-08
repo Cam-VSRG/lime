@@ -182,7 +182,23 @@ class HTML5AudioSource
 		#end
 	}
 
-	public function prepare(time:Float):Void {}
+	public function prepare(time:Float):Void
+	{
+		pauseTime = value + parent.offset;
+		if (pauseTime < 0 || !Math.isFinite(pauseTime)) pauseTime = 0;
+
+		#if lime_howlerjs
+		if (howl != null && id != -1)
+		{
+			howl.stop(id);
+			howl.seek(pauseTime / 1000, id);
+		}
+		playing = false;
+		stopTimer();
+		#end
+
+		return value;
+	}
 
 	// Event Handlers
 	private inline function stopTimer():Void

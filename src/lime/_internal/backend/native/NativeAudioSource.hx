@@ -135,7 +135,7 @@ class NativeAudioSource
 	private static var bufferViewPool:Array<ArrayBufferView> = [];
 
 	private static function resetTimer(timer:Timer, time:Float, callback:Void->Void):Timer
-	@:privateAccess {
+	{
 		if (timer == null) (timer = new Timer(time)).run = callback;
 		else
 		{
@@ -212,7 +212,7 @@ class NativeAudioSource
 		AL.sourcef(source, AL.MAX_DISTANCE, 1);
 
 		loopPoints = [0, 0];
-		anglesArray = [Math.PI / 6, -Math.PI / 6];
+		if (anglesArray == null) anglesArray = [Math.PI / 6, -Math.PI / 6];
 
 		if (AudioManager.__spatializeSupported) AL.sourcei(source, AL.SOURCE_SPATIALIZE_SOFT, AL.FALSE);
 		if (AudioManager.__stereoAnglesSupported) AL.sourcefv(source, AL.STEREO_ANGLES, anglesArray);
@@ -220,7 +220,6 @@ class NativeAudioSource
 
 	public function dispose():Void
 	{
-		anglesArray = null;
 		loopPoints = null;
 		mins = null;
 		maxs = null;
@@ -235,6 +234,7 @@ class NativeAudioSource
 	public function load():Void
 	{
 		init();
+		if (source == null) return;
 
 		format = AudioBuffer.__getALFormat(parent.buffer.bitsPerSample, parent.buffer.channels);
 		streamed = parent.buffer.data == null && parent.buffer.decoder != null;
@@ -303,7 +303,7 @@ class NativeAudioSource
 			}
 
 			buffer = parent.buffer.__srcBuffer;
-			loaded = buffer != null && source != null;
+			loaded = buffer != null;
 			if (loaded) AL.sourcei(source, AL.BUFFER, buffer);
 		}
 		else
