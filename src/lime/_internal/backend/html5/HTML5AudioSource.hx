@@ -182,7 +182,7 @@ class HTML5AudioSource
 		#end
 	}
 
-	public function prepare(time:Float):Void
+	public function prepare(value:Float):Void
 	{
 		pauseTime = value + parent.offset;
 		if (pauseTime < 0 || !Math.isFinite(pauseTime)) pauseTime = 0;
@@ -196,8 +196,6 @@ class HTML5AudioSource
 		playing = false;
 		stopTimer();
 		#end
-
-		return value;
 	}
 
 	// Event Handlers

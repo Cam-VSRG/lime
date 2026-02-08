@@ -132,7 +132,7 @@ class FlashAudioSource
 		#end
 	}
 
-	public function prepare(time:Float):Void
+	public function prepare(value:Float):Void
 	{
 		playing = false;
 		pauseTime = value + parent.offset;
@@ -145,8 +145,6 @@ class FlashAudioSource
 			channel = null;
 		}
 		#end
-
-		return value;
 	}
 
 	// Event Handlers
