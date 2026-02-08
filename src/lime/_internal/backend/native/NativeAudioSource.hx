@@ -490,7 +490,7 @@ class NativeAudioSource
 		}
 		else
 		{
-			if (timer == null) timer.stop();
+			if (timer != null) timer.stop();
 			completed = true;
 			playing = false;
 			pauseSample = 0;
