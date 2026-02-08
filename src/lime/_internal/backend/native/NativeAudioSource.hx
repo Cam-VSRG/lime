@@ -65,16 +65,17 @@ class NativeAudioSource
 		for (source in sources)
 		{
 			backend = source.__backend;
-			if (backend != null && backend.loaded)
+			if (backend != null && backend.loaded && !backend.playing)
 			{
 				if (!backend.prepared)
 				{
 					backend.prepare(backend.getCurrentTime());
-					if (!backend.prepared) backend.timer = resetTimer(backend.timer, 0, backend.complete);
+					if (!backend.prepared) continue;
 				}
-				else
-					backend.prepared = false;
 
+				backend.prepared = false;
+				backend.playing = true;
+				backend.completed = false;
 				alSources.push(backend.source);
 
 				if (backend.streamed && !backend.streamEnded) backend.resetStream();
@@ -323,15 +324,17 @@ class NativeAudioSource
 			if (streamed)
 			{
 				streamMutex.acquire();
+
 				removeStream();
 				queuedStreamAudios.remove(this);
 				AL.sourceUnqueueBuffers(source, AL.getSourcei(source, AL.BUFFERS_QUEUED));
 				internalQueuedBuffers = queuedBuffers = filledBuffers = 0;
-				streamMutex.release();
 
 				if (decoder != null && standaloneDecoder) decoder.dispose();
 				decoder = null;
 				standaloneDecoder = false;
+
+				streamMutex.release();
 			}
 			else
 			{
@@ -368,12 +371,13 @@ class NativeAudioSource
 		if (prepared)
 		{
 			prepared = false;
+			completed = false;
 			if (streamed && !streamEnded) resetStream();
 
 			AL.sourcePlay(source);
 			timer = resetTimer(timer, (loopPoints[1] - pauseSample) * 1000.0 / parent.buffer.sampleRate / getPitch(), complete);
 		}
-		else setCurrentTime(pauseSample * 1000.0 / parent.buffer.sampleRate);
+		else setCurrentTime((pauseSample * 1000.0 / parent.buffer.sampleRate) - parent.offset);
 	}
 
 	public function pause():Void
@@ -415,9 +419,9 @@ class NativeAudioSource
 
 		var remaining = (loopPoints[1] - sampleOffset) * 1000.0 / parent.buffer.sampleRate / getPitch();
 		pauseSample = sampleOffset;
-		prepared = remaining > 0;
+		completed = remaining <= 0;
+		prepared = !completed;
 		playing = false;
-		completed = false;
 
 		if (timer != null) timer.stop();
 		if (prepared)
