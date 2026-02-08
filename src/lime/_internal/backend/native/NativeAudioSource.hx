@@ -208,12 +208,16 @@ class NativeAudioSource
 
 	private function init():Void
 	{
-		if (source != null || (source = AL.createSource()) == null) return;
+		if (source != null) return;
+
+		source = AL.createSource();
+		if (source == null) return;
+
+		if (loopPoints == null) loopPoints = [0, 0];
+		if (anglesArray == null) anglesArray = [Math.PI / 6, -Math.PI / 6];
+
 		AL.sourcef(source, AL.MAX_GAIN, 10);
 		AL.sourcef(source, AL.MAX_DISTANCE, 1);
-
-		loopPoints = [0, 0];
-		if (anglesArray == null) anglesArray = [Math.PI / 6, -Math.PI / 6];
 
 		if (AudioManager.__spatializeSupported) AL.sourcei(source, AL.SOURCE_SPATIALIZE_SOFT, AL.FALSE);
 		if (AudioManager.__stereoAnglesSupported) AL.sourcefv(source, AL.STEREO_ANGLES, anglesArray);
@@ -224,6 +228,9 @@ class NativeAudioSource
 		loopPoints = null;
 		mins = null;
 		maxs = null;
+
+		position = null;
+		timer = null;
 
 		if (source != null) AL.deleteSource(source);
 		source = null;
@@ -344,6 +351,10 @@ class NativeAudioSource
 			streamed = loaded = false;
 		}
 
+		playing = false;
+		completed = false;
+		prepared = false;
+
 		if (standaloneBuffer && buffer != null) AL.deleteBuffer(buffer);
 		standaloneBuffer = false;
 		buffer = null;
@@ -385,9 +396,9 @@ class NativeAudioSource
 		if (!loaded || !playing) return;
 
 		if (timer != null) timer.stop();
+		pauseSample = getCurrentSampleOffset();
 		playing = false;
 		completed = false;
-		pauseSample = getCurrentSampleOffset();
 		prepared = false;
 
 		AL.sourcePause(source);
@@ -399,9 +410,9 @@ class NativeAudioSource
 		if (!loaded || !playing) return;
 
 		if (timer != null) timer.stop();
+		pauseSample = 0;
 		playing = false;
 		completed = false;
-		pauseSample = 0;
 		prepared = false;
 
 		AL.sourceStop(source);
@@ -512,13 +523,17 @@ class NativeAudioSource
 
 	private function getCurrentSampleOffset():Int
 	{
-		if (completed || AL.getSourcei(source, AL.SOURCE_STATE) == AL.STOPPED && (!streamed || !streaming && streamEnded))
+		if (completed)
 		{
 			return loopPoints[1];
 		}
 		else if (!playing)
 		{
 			return pauseSample;
+		}
+		else if (AL.getSourcei(source, AL.SOURCE_STATE) == AL.STOPPED && (!streamed || !streaming && streamEnded))
+		{
+			return loopPoints[1];
 		}
 
 		var sampleOffset:Int;
