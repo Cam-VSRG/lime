@@ -89,8 +89,8 @@ class AudioManager
 	**/
 	public static var gain(get, set):Float;
 
-	@:noCompletion private static var __muted:Bool;
-	@:noCompletion private static var __gain:Float;
+	@:noCompletion private static var __muted:Bool = false;
+	@:noCompletion private static var __gain:Float = 1;
 	#if lime_openal
 	#if (ios || tvos || mac)
 	@:noCompletion private static var __updateTimer:Timer;
@@ -153,7 +153,7 @@ class AudioManager
 		}
 		#end
 
-		gain = 1;
+		gain = __gain;
 		#end
 	}
 
@@ -208,8 +208,8 @@ class AudioManager
 				var device = ALC.getContextsDevice(currentContext);
 				if (device != null)
 				{
-					if (__enumerateAllSupported) return ALC.getString(device, ALC.ALL_DEVICES_SPECIFIER);
-					else return ALC.getString(device, ALC.DEVICE_SPECIFIER);
+					if (__enumerateAllSupported) return __formatDeviceName(ALC.getString(device, ALC.ALL_DEVICES_SPECIFIER));
+					else return __formatDeviceName(ALC.getString(device, ALC.DEVICE_SPECIFIER));
 				}
 			}
 		}
@@ -233,7 +233,7 @@ class AudioManager
 	{
 		#if (lime_openal && !lime_doc_gen)
 		if (context == null || context.type != OPENAL) return [];
-		else if (!__enumerateAllSupported) return [ALC.getString(null, ALC.DEVICE_SPECIFIER)];
+		else if (!__enumerateAllSupported) return [__formatDeviceName(ALC.getString(null, ALC.DEVICE_SPECIFIER))];
 
 		final arr = ALC.getStringList(null, ALC.ALL_DEVICES_SPECIFIER);
 		for (i in 0...arr.length) arr[i] = __formatDeviceName(arr[i]);
@@ -322,8 +322,8 @@ class AudioManager
 
 	@:noCompletion private static inline function set_muted(value:Bool):Bool
 	{
-		if (context == null) return __muted;
 		__muted = value;
+		if (context == null) return __muted;
 
 		#if !lime_doc_gen
 		#if lime_openal
@@ -349,8 +349,8 @@ class AudioManager
 
 	@:noCompletion private static inline function set_gain(value:Float):Float
 	{
-		if (context == null) return __gain;
 		__gain = value;
+		if (context == null) return __gain;
 
 		#if !lime_doc_gen
 		#if lime_openal
@@ -471,6 +471,7 @@ class AudioManager
 		__spatializeSupported = AL.isExtensionPresent('AL_SOFT_source_spatialize');
 		__stereoAnglesSupported = AL.isExtensionPresent('AL_EXT_STEREO_ANGLES');
 
+		gain = __gain;
 		AL.distanceModel(AL.NONE);
 	}
 
