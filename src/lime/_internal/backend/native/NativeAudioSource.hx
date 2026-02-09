@@ -246,7 +246,7 @@ class NativeAudioSource
 
 		format = AudioBuffer.__getALFormat(parent.buffer.bitsPerSample, parent.buffer.channels);
 		streamed = parent.buffer.data == null && parent.buffer.decoder != null;
-		if (streamed)
+		if (streamed && !parent.buffer.decoder.disposed)
 		{
 			samples = Int64.toInt(parent.buffer.decoder.total());
 
@@ -337,7 +337,7 @@ class NativeAudioSource
 				AL.sourceUnqueueBuffers(source, AL.getSourcei(source, AL.BUFFERS_QUEUED));
 				internalQueuedBuffers = queuedBuffers = filledBuffers = 0;
 
-				if (decoder != null && standaloneDecoder) decoder.dispose();
+				if (standaloneDecoder) decoder.dispose();
 				decoder = null;
 				standaloneDecoder = false;
 
@@ -478,11 +478,14 @@ class NativeAudioSource
 			return;
 		}
 
+		if (timer != null) timer.stop();
+
 		if (loops > 0)
 		{
 			loops--;
 			remaining = (loopPoints[1] - loopPoints[0]) * 1000.0 / parent.buffer.sampleRate / getPitch();
 			if (streamed) streamMutex.acquire();
+
 			if (streamLoops > 0)
 			{
 				streamLoops--;
@@ -505,7 +508,6 @@ class NativeAudioSource
 		}
 		else
 		{
-			if (timer != null) timer.stop();
 			completed = true;
 			playing = false;
 			pauseSample = 0;
@@ -960,6 +962,7 @@ class NativeAudioSource
 
 		AL.sourceUnqueueBuffers(source, AL.getSourcei(source, AL.BUFFERS_QUEUED));
 
+		streamEnded = false;
 		internalQueuedBuffers = queuedBuffers = filledBuffers = streamLoops = nextBuffer = 0;
 		decoder.seek(sample);
 		fillBuffers(n);

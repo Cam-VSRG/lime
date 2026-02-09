@@ -52,6 +52,11 @@ class AudioDecoder
 	**/
 	public var sampleRate:Int;
 
+	/**
+		A variable if it declared it to be disposed and not to use.
+	**/
+	public var disposed:Bool;
+
 	@:noCompletion private var path:Null<String>;
 	@:noCompletion private var bytes:Null<Bytes>;
 
@@ -63,6 +68,9 @@ class AudioDecoder
 	public function dispose():Void
 	{
 		eof = true;
+		disposed = true;
+		path = null;
+		bytes = null;
 	}
 
 	/**
