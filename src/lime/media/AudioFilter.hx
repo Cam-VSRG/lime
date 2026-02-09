@@ -36,7 +36,7 @@ class AudioFilter
 
 	/**
 		A variable representing a frequency in the current filtering algorithm measured, in hz.
-		Ranging from 0 to 24000, but in native platforms, it can only set internal frequency value from 100 to 22500.
+		Ranging from 0 to 24000, but in native platforms, it can only set internal frequency value from 140 to 20000.
 	**/
 	public var frequency(default, set):Float = 1000;
 
@@ -112,12 +112,12 @@ class AudioFilter
 	@:noCompletion private function __updateFilter():Void
 	{
 		#if lime_openal
-		var linearValue = Math.max(Math.min((frequency - 100) / 22400, 1), 0);
+		var linearValue = Math.max(Math.min((frequency - 140) / 19860, 1), 0);
 
 		switch (type)
 		{
 			case LOWPASS:
-				__filterDisconnected = frequency >= 22500;
+				__filterDisconnected = frequency >= 20000;
 				if (!__filterDisconnected)
 				{
 					AL.filteri(__alFilter, AL.FILTER_TYPE, AL.FILTER_LOWPASS);
