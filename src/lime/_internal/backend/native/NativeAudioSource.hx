@@ -483,29 +483,45 @@ class NativeAudioSource
 
 		if (loops > 0)
 		{
-			loops--;
-			remaining = (loopPoints[1] - loopPoints[0]) * 1000.0 / parent.buffer.sampleRate / getPitch();
-			if (streamed) streamMutex.acquire();
-
-			if (streamLoops > 0)
-			{
-				streamLoops--;
-				timer = resetTimer(timer, remaining, complete);
-				pauseSample = loopPoints[0];
-			}
-			else if (AudioManager.__loopPointsSupported && AL.getSourcei(source, AL.LOOPING) == AL.TRUE)
-			{
-				timer = resetTimer(timer, remaining, complete);
-				pauseSample = loopPoints[0];
-			}
-			else
+			inline function fallback()
 			{
 				playing = true;
 				setCurrentTime(loopPoints[0] * 1000.0 / parent.buffer.sampleRate - parent.offset);
 			}
 
-			if (streamed) streamMutex.release();
-			else if (loops == 0) AL.sourcei(source, AL.LOOPING, AL.FALSE);
+			if (streamed)
+			{
+				mutex.acquire();
+				if (streamLoops > 0)
+				{
+					loops -= streamLoops;
+					streamLoops = 0;
+					pauseSample = loopPoints[0];
+					timer = resetTimer(timer, (loopPoints[1] - sampleOffset) * 1000.0 / parent.buffer.sampleRate / getPitch(), complete);
+					mutex.release();
+				}
+				else
+				{
+					loops--;
+					mutex.release();
+					fallback();
+				}
+			}
+			else
+			{
+				loops--;
+				if (loops == 0) AL.sourcei(source, AL.LOOPING, AL.FALSE);
+
+				if (AudioManager.__loopPointsSupported && AL.getSourcei(source, AL.LOOPING) == AL.TRUE)
+				{
+					pauseSample = loopPoints[0];
+					timer = resetTimer(timer, (loopPoints[1] - sampleOffset) * 1000.0 / parent.buffer.sampleRate / getPitch(), complete);
+				}
+				else
+				{
+					fallback();
+				}
+			}
 		}
 		else
 		{
