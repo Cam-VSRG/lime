@@ -330,6 +330,8 @@ class NativeAudioSource
 		{
 			if (streamed)
 			{
+				mutex.acquire();
+				seekMutex.acquire();
 				streamMutex.acquire();
 
 				removeStream();
@@ -342,6 +344,8 @@ class NativeAudioSource
 				standaloneDecoder = false;
 
 				streamMutex.release();
+				mutex.release();
+				seekMutex.release();
 			}
 			else
 			{
