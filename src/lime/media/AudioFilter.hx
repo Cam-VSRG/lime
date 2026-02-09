@@ -35,7 +35,7 @@ class AudioFilter
 
 	/**
 		A variable representing a frequency in the current filtering algorithm measured, in hz.
-		Ranging from 0 to 24000, in Native Platforms it's from 100 to 22500.
+		Ranging from 0 to 24000, but in native platforms, it can only set internal frequency value from 100 to 22500.
 	**/
 	public var frequency(default, set):Float = 1000;
 
@@ -77,7 +77,7 @@ class AudioFilter
 		__appliedSources = null;
 
 		#if lime_openal
-		AL.deleteFilter(_alFilter);
+		AL.deleteFilter(__alFilter);
 		#elseif (js && html5)
 		__biquadFilter.disconnect();
 		__biquadFilter = null;
@@ -142,10 +142,9 @@ class AudioFilter
 
 		}
 
-		if (__filterDisconnected)
-		{
-			AL.filteri(__alFilter, AL.FILTER_TYPE, AL.FILTER_NULL);
-		}
+		if (__filterDisconnected) AL.filteri(__alFilter, AL.FILTER_TYPE, AL.FILTER_NULL);
+
+		for (source in __appliedSources) __sourceRefresh(source.__backend);
 		#elseif (js && html5)
 		var wasFilterDisconnected = __filterDisconnected;
 
@@ -201,7 +200,7 @@ class AudioFilter
 	@:noCompletion private function __sourceRemoveFilter(backend:AudioSourceBackend):Void
 	{
 		#if lime_openal
-		
+		AL.removeDirectFilter(backend.source);
 		#elseif (js && html5)
 		if (backend.audioNode == null) return;
 

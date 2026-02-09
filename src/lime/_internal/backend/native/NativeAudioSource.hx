@@ -6,6 +6,7 @@ import haxe.Timer;
 import sys.thread.Thread;
 import sys.thread.Mutex;
 
+import lime.app.Event;
 import lime.math.Vector2;
 import lime.math.Vector4;
 import lime.media.openal.AL;
