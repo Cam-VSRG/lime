@@ -500,32 +500,34 @@ class HTML5AudioSource
 		if (peaks == null) peaks = [0, 0];
 
 		#if lime_howlerjs
-		if (howlSound == null || audioNode == null || !(untyped audioNode.bufferSource))
+		var previousChannelSplitterNode = channelSplitterNode;
+		channelSplitterNode = audioNode != null ? (untyped audioNode.bufferSource) : null;
+
+		if (channelSplitterNode == null)
 		{
 			for (i in 0...2) peaks[i] = 0;
 			return peaks;
 		}
-
-		if (channelSplitter == null)
+		else if (channelSplitter == null)
 		{
-			var ctx = untyped audioNode.context;
-			channelSplitter = new ChannelSplitterNode(untyped ctx, {numberOfOutputs: 2});
-			analyserLeft = new AnalyserNode(untyped ctx);
-			analyserRight = new AnalyserNode(untyped ctx);
+			channelSplitter = new ChannelSplitterNode(untyped audioNode.context, {numberOfOutputs: 2});
+			analyserLeft = new AnalyserNode(untyped audioNode.context);
+			analyserRight = new AnalyserNode(untyped audioNode.context);
 			analyserLeft.fftSize = analyserRight.fftSize = 2048;
 			analyserLeft.maxDecibels = analyserRight.maxDecibels = 0;
 			analyserLeft.minDecibels = analyserRight.minDecibels = -120;
-
-			untyped audioNode.bufferSource.connect(channelSplitter);
 			channelSplitter.connect(analyserLeft, 0);
 			channelSplitter.connect(analyserRight, 1);
+			channelSplitterNode.connect(channelSplitter);
+		}
+		else if (previousChannelSplitterNode != channelSplitterNode)
+		{
+			//if (untyped previousChannelSplitterNode) previousChannelSplitterNode.disconnect(channelSplitter);
+			if (untyped channelSplitterNode) channelSplitterNode.connect(channelSplitter);
 		}
 
 		if (dataArrayLeft == null) dataArrayLeft = new Float32Array(2048);
 		if (dataArrayRight == null) dataArrayRight = new Float32Array(2048);
-
-		analyserLeft.getFloatTimeDomainData(dataArrayLeft);
-		analyserRight.getFloatTimeDomainData(dataArrayRight);
 
 		if (mins == null)
 		{
@@ -536,6 +538,9 @@ class HTML5AudioSource
 		{
 			for (i in 0...2) maxs[i] = mins[i] = -1;
 		}
+
+		analyserLeft.getFloatTimeDomainData(dataArrayLeft);
+		analyserRight.getFloatTimeDomainData(dataArrayRight);
 
 		for (v in dataArrayLeft) ((v > maxs[0]) ? (maxs[0] = v) : (if (-v > mins[0]) (mins[0] = -v)));
 		for (v in dataArrayRight) ((v > maxs[1]) ? (maxs[1] = v) : (if (-v > mins[1]) (mins[1] = -v)));
