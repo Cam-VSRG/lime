@@ -91,6 +91,7 @@ class HTML5AudioSource
 			});
 			howl.load();
 		}
+		id = -1;
 		#end
 	}
 
@@ -135,13 +136,17 @@ class HTML5AudioSource
 			if (length == 0) return;
 		}
 
-		var prevId = id;
-		if (prevId == -1) id = howl.play();
+		// causes issues for some reason??
+		/*var prevId = id;
+		if (prevId == -1 || !Math.isFinite(prevId)) id = howl.play();
 		else
 		{
 			id = howl.play(prevId);
 			disposeAnalyser();
-		}
+		}*/
+
+		id = howl.play();
+		disposeAnalyser();
 
 		updateLoop();
 		howl.volume(gain, id);
@@ -230,13 +235,17 @@ class HTML5AudioSource
 			var wasLooping = howl.loop(id);
 			loops--;
 			updateLoop();
-			if (!wasLooping)
+			if (wasLooping)
 			{
+				resetTimer(Std.int((length - (howl.seek(id) * 1000) - parent.offset) / howl.rate(id)));
+			}
+			else
+			{
+				resetTimer(Std.int((length - loopTime - parent.offset) / howl.rate(id)));
 				howl.seek((loopTime + parent.offset) / 1000, id);
 				howl.play(id);
 			}
 			pauseTime = loopTime;
-			resetTimer(Std.int((length - loopTime - parent.offset) / howl.rate(id)));
 		}
 		else
 		{

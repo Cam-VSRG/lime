@@ -478,8 +478,7 @@ class NativeAudioSource
 			timer = resetTimer(timer, remaining, complete);
 			return;
 		}
-
-		if (timer != null) timer.stop();
+		else if (timer != null) timer.stop();
 
 		if (loops > 0)
 		{
