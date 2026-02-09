@@ -261,9 +261,10 @@ class HTML5AudioSource
 			var wasLooping = howl.loop(id);
 			loops--;
 			updateLoop();
-			if (wasLooping)
+			if (wasLooping && howl.playing(id))
 			{
 				resetTimer(Std.int((length - (howl.seek(id) * 1000) - parent.offset) / howl.rate(id)));
+				howl.play(id);
 			}
 			else
 			{
