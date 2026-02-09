@@ -45,7 +45,7 @@ class HTML5AudioSource
 	private var pitch:Float;
 	private var position:Vector4;
 	#if lime_howlerjs
-	public var onRefreshNode = new Event<Void->Void>();
+	public var onRefresh = new Event<HTML5AudioSource->Void>();
 	public var id:Int;
 
 	public var howl:Howl;
@@ -164,14 +164,15 @@ class HTML5AudioSource
 		}
 		else
 		{
-			audioNode = untyped node;
+			if (untyped howlSound._panner) audioNode = untyped howlSound._panner;
+			else audioNode = untyped node;
 		}
 
 		updateLoop();
 		howl.volume(gain, id);
 		howl.seek((pauseTime + parent.offset) / 1000, id);
 
-		onRefreshNode.dispatch();
+		onRefresh.dispatch(this);
 		#end
 	}
 
@@ -501,7 +502,12 @@ class HTML5AudioSource
 
 		#if lime_howlerjs
 		var previousChannelSplitterNode = channelSplitterNode;
-		channelSplitterNode = audioNode != null ? (untyped audioNode.bufferSource) : null;
+		if (howlSound != null && (untyped howlSound._node))
+		{
+			if (untyped howlSound._node.bufferSource) channelSplitterNode = untyped howlSound._node.bufferSource;
+			else channelSplitterNode = null;
+		}
+		else channelSplitterNode = null;
 
 		if (channelSplitterNode == null)
 		{
@@ -523,7 +529,7 @@ class HTML5AudioSource
 		else if (previousChannelSplitterNode != channelSplitterNode)
 		{
 			//if (untyped previousChannelSplitterNode) previousChannelSplitterNode.disconnect(channelSplitter);
-			if (untyped channelSplitterNode) channelSplitterNode.connect(channelSplitter);
+			if (channelSplitterNode != null) channelSplitterNode.connect(channelSplitter);
 		}
 
 		if (dataArrayLeft == null) dataArrayLeft = new Float32Array(2048);

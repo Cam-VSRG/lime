@@ -53,7 +53,7 @@ class AudioDecoder
 	public var sampleRate:Int;
 
 	/**
-		A variable if it declared it to be disposed and not to use.
+		A variable if it declared it its disposed and not to use.
 	**/
 	public var disposed:Bool;
 

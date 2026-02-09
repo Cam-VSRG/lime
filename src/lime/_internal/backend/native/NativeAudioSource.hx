@@ -156,6 +156,11 @@ class NativeAudioSource
 	private static var streamThread:Thread;
 	private static var streamMutex:Mutex = new Mutex();
 
+	public var onRefresh = new Event<NativeAudioSource->Void>();
+	public var parent:AudioSource;
+	public var source:ALSource;
+	public var loaded:Bool;
+
 	private var completed:Bool;
 	private var format:Int;
 	private var loops:Int;
@@ -166,10 +171,6 @@ class NativeAudioSource
 	private var samples:Int;
 	private var streamed:Bool;
 	private var timer:Timer;
-
-	public var parent:AudioSource;
-	public var source:ALSource;
-	public var loaded:Bool;
 
 	private var standaloneBuffer:Bool;
 	private var buffer:ALBuffer;
@@ -221,6 +222,8 @@ class NativeAudioSource
 
 		if (AudioManager.__spatializeSupported) AL.sourcei(source, AL.SOURCE_SPATIALIZE_SOFT, AL.FALSE);
 		if (AudioManager.__stereoAnglesSupported) AL.sourcefv(source, AL.STEREO_ANGLES, anglesArray);
+
+		onRefresh.dispatch(this);
 	}
 
 	public function dispose():Void

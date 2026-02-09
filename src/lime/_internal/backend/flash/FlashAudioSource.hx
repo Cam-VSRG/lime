@@ -26,6 +26,7 @@ class FlashAudioSource
 		for (source in sources) source.stop();
 	}
 
+	public var onRefresh = new Event<FlashAudioSource->Void>();
 	public var parent:AudioSource;
 
 	private var completed:Bool;
@@ -95,6 +96,7 @@ class FlashAudioSource
 
 		if (channel != null) channel.stop();
 		channel = sound.play(pauseTime + parent.offset, 0, soundTransform);
+		onRefresh.dispatch(this);
 
 		resetTimer(Std.int(length - pauseTime - parent.offset));
 		#end

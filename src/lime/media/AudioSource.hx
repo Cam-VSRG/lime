@@ -18,6 +18,7 @@ import lime.math.Vector4;
 
 	@see lime.media.AudioBuffer
 **/
+@:allow(lime.media.AudioFilter)
 class AudioSource
 {
 	/**
@@ -34,6 +35,11 @@ class AudioSource
 		The current playback position of the audio, in milliseconds.
 	**/
 	public var currentTime(get, set):Float;
+
+	/**
+		Filter and effects of the audio.
+	**/
+	public var filter(get, set):AudioFilter;
 
 	/**
 		The gain (volume) of the audio. A value of `1.0` represents the default volume.
@@ -97,6 +103,7 @@ class AudioSource
 	public var position(get, set):Vector4;
 
 	@:noCompletion private var __backend:AudioSourceBackend;
+	@:noCompletion private var __filter:AudioFilter;
 
 	/**
 		Creates a new `AudioSource` instance.
@@ -218,6 +225,34 @@ class AudioSource
 		return __backend.setCurrentTime(value);
 	}
 
+	@:noCompletion private inline function get_filter():AudioFilter
+	{
+		return __filter;
+	}
+
+	@:noCompletion private inline function set_filter(value:AudioFilter):AudioFilter
+	{
+		if (__filter != value)
+		{
+			if (__filter != null)
+			{
+				__filter.__removeSource(this);
+			}
+
+			if (value != null && !value.disposed)
+			{
+				__filter = value;
+				__filter.__applySource(this);
+			}
+			else
+			{
+				__filter = null;
+			}
+		}
+
+		return __filter;
+	}
+
 	@:noCompletion private inline function get_gain():Float
 	{
 		return __backend.getGain();
@@ -305,9 +340,9 @@ class AudioSource
 }
 
 #if lime_openal
-@:noCompletion private typedef AudioSourceBackend = lime._internal.backend.native.NativeAudioSource;
+@:noCompletion typedef AudioSourceBackend = lime._internal.backend.native.NativeAudioSource;
 #elseif (js && html5)
-@:noCompletion private typedef AudioSourceBackend = lime._internal.backend.html5.HTML5AudioSource;
+@:noCompletion typedef AudioSourceBackend = lime._internal.backend.html5.HTML5AudioSource;
 #elseif flash
-@:noCompletion private typedef AudioSourceBackend = lime._internal.backend.flash.FlashAudioSource;
+@:noCompletion typedef AudioSourceBackend = lime._internal.backend.flash.FlashAudioSource;
 #end
