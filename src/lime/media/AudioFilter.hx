@@ -16,7 +16,8 @@ import lime.media.howlerjs.Howler;
 @:noDebug
 #end
 /**
-
+	Filtering or effects that can be used to apply to an audio source.
+	NOTE: Only works in Web, and Native targets.
 **/
 class AudioFilter
 {
@@ -192,7 +193,7 @@ class AudioFilter
 		{
 			backend.audioNode.disconnect();
 			backend.audioNode.connect(__biquadFilter);
-			__biquadFilter.connect(untyped Howler.ctx.destination);
+			__biquadFilter.connect(untyped Howler.masterGain);
 		}
 		#end
 	}
@@ -206,7 +207,7 @@ class AudioFilter
 
 		__biquadFilter.disconnect();
 		backend.audioNode.disconnect();
-		backend.audioNode.connect(untyped Howler.ctx.destination);
+		backend.audioNode.connect(untyped Howler.masterGain);
 		#end
 	}
 
