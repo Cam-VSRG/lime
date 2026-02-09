@@ -100,6 +100,7 @@ class AudioFilter
 
 	@:noCompletion private inline function set_frequency(value:Float):Float
 	{
+		value = Math.min(Math.max(value, 0), 24000);
 		if (frequency != value)
 		{
 			frequency = value;
@@ -113,6 +114,7 @@ class AudioFilter
 	{
 		#if lime_openal
 		var linearValue = Math.max(Math.min((frequency - 140) / 19860, 1), 0);
+		var shelfLinear = 1.0 + Math.min((frequency  - 140) / 140, 0) - Math.max((frequency - 20000) / 4000, 0);
 
 		switch (type)
 		{
@@ -122,6 +124,7 @@ class AudioFilter
 				{
 					AL.filteri(__alFilter, AL.FILTER_TYPE, AL.FILTER_LOWPASS);
 					AL.filterf(__alFilter, AL.LOWPASS_GAINHF, linearValue);
+					AL.filteri(__alFilter, AL.LOWPASS_GAIN, shelfLinear);
 				}
 
 			case HIGHPASS:
@@ -129,14 +132,16 @@ class AudioFilter
 				if (!__filterDisconnected)
 				{
 					AL.filteri(__alFilter, AL.FILTER_TYPE, AL.FILTER_HIGHPASS);
-					AL.filterf(__alFilter, AL.HIGHPASS_GAINLF, 1 - linearValue);
+					AL.filterf(__alFilter, AL.HIGHPASS_GAINLF, 1 - Math.pow(linearValue, 0.25));
+					AL.filteri(__alFilter, AL.HIGHPASS_GAIN, shelfLinear * Math.pow(linearValue, 0.5));
 				}
 
 			case BANDPASS:
 				__filterDisconnected = false;
 				AL.filteri(__alFilter, AL.FILTER_TYPE, AL.FILTER_BANDPASS);
-				AL.filterf(__alFilter, AL.LOWPASS_GAINHF, linearValue);
-				AL.filterf(__alFilter, AL.HIGHPASS_GAINLF, 1 - linearValue);
+				AL.filterf(__alFilter, AL.BANDPASS_GAINHF, linearValue);
+				AL.filterf(__alFilter, AL.BANDPASS_GAINLF, 1 - Math.pow(linearValue, 0.35));
+				AL.filteri(__alFilter, AL.BANDPASS_GAIN, shelfLinear);
 
 			default:
 				__filterDisconnected = true;
