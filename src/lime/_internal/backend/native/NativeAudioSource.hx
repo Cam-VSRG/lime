@@ -665,6 +665,8 @@ class NativeAudioSource
 
 	public function getLength():Float
 	{
+		if (!loaded) return 0;
+
 		var length = loopPoints[1] * 1000.0 / parent.buffer.sampleRate;
 		if (length <= parent.offset) return 0;
 		return length - parent.offset;
@@ -688,6 +690,8 @@ class NativeAudioSource
 
 	public function getLoopTime():Float
 	{
+		if (!loaded) return 0;
+
 		var loopTime = loopPoints[0] * 1000.0 / parent.buffer.sampleRate;
 		if (loopTime <= parent.offset) return 0;
 		return loopTime - parent.offset;
