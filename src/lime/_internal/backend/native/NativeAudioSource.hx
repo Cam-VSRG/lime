@@ -472,7 +472,8 @@ class NativeAudioSource
 
 		var sampleOffset = getCurrentSampleOffset();
 		var remaining = (loopPoints[1] - sampleOffset) * 1000.0 / parent.buffer.sampleRate / getPitch();
-		if (remaining > 30 && AL.getSourcei(source, AL.SOURCE_STATE) == AL.PLAYING && (!streamed || streaming || !streamEnded) && streamLoops == 0)
+
+		if (remaining > 30 && AL.getSourcei(source, AL.SOURCE_STATE) == AL.PLAYING && streamLoops == 0)
 		{
 			timer = resetTimer(timer, remaining, complete);
 			return;
@@ -545,10 +546,7 @@ class NativeAudioSource
 			if (queuedBuffers == 0) return pauseSample;
 
 			sampleOffset = AL.getSourcei(source, AL.SAMPLE_OFFSET) + bufferCurs[STREAM_MAX_BUFFERS - queuedBuffers];
-			if (AL.getSourcei(source, AL.SOURCE_STATE) == AL.STOPPED && internalQueuedBuffers == 0)
-			{
-				sampleOffset += STREAM_BUFFER_SAMPLES;
-			}
+			if (internalQueuedBuffers == 0) sampleOffset += STREAM_BUFFER_SAMPLES;
 
 			seekMutex.release();
 		}
@@ -579,6 +577,7 @@ class NativeAudioSource
 
 		var remaining = (loopPoints[1] - pauseSample) * 1000.0 / parent.buffer.sampleRate / getPitch();
 		var canPlay = remaining > 0;
+
 		if (playing && canPlay)
 		{
 			completed = false;
@@ -586,9 +585,9 @@ class NativeAudioSource
 			if (streamed)
 			{
 				snapBuffersToSample(pauseSample, false, STREAM_MIN_BUFFERS);
+				AL.sourcePlay(source);
 				if (streamEnded) stopStream();
 				else resetStream();
-				AL.sourcePlay(source);
 				mutex.release();
 			}
 			else if (AL.getSourcei(source, AL.SOURCE_STATE) != AL.PLAYING)
