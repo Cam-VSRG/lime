@@ -77,9 +77,9 @@ namespace lime
 		return true;
 	}
 
-	size_t OggDecoder::Decode(void *ptr, size_t frames, AudioFormat format)
+	size_t OggDecoder::Decode(void *ptr, size_t frames, AudioDataFormat format)
 	{
-		if (format == AudioFormat::S16)
+		if (format == AudioDataFormat::S16)
 		{
 			size_t bytesWanted = frames * channels * 2;
 			size_t bytesRead = 0;
@@ -107,7 +107,7 @@ namespace lime
 
 			return bytesRead / (channels * 2);
 		}
-		else if (format == AudioFormat::F32)
+		else if (format == AudioDataFormat::F32)
 		{
 			size_t framesReadTotal = 0;
 			float **pcm_channels = nullptr;
