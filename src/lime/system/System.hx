@@ -9,6 +9,7 @@ import lime.graphics.RenderContextAttributes;
 import lime.math.Rectangle;
 import lime.ui.WindowAttributes;
 import lime.utils.ArrayBuffer;
+import lime.utils.FileInput;
 import lime.utils.UInt8Array;
 import lime.utils.UInt16Array;
 
@@ -19,6 +20,7 @@ import js.Browser;
 
 #if sys
 import sys.io.Process;
+import sys.io.File;
 #end
 
 /**
@@ -421,6 +423,22 @@ class System
 			return NativeCFFI.lime_system_set_hint(key, value);
 			#end
 		}
+	}
+
+	public static function read(path:String):FileInput
+	{
+		if (path != null)
+		{
+			#if lime_cffi
+			return new FileInput(NativeCFFI.lime_system_read(path));
+			#elseif sys
+			return File.read(path, true);
+			#else
+			Log.error("System.read is unsupported in non-sys target.");
+			#end
+		}
+
+		return null;
 	}
 
 	@:noCompletion private static function __copyMissingFields(target:Dynamic, source:Dynamic):Void
