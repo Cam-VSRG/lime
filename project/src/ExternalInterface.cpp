@@ -37,6 +37,7 @@
 #include <media/decoders/OggDecoder.h>
 #include <media/decoders/OpusDecoder.h>
 #include <media/decoders/WavDecoder.h>
+#include <media/utils/AudioDataUtil.h>
 #include <system/CFFIPointer.h>
 #include <system/Clipboard.h>
 #include <system/Endian.h>
@@ -1848,33 +1849,38 @@ namespace lime
 		value info = alloc_empty_object();
 		alloc_field(info, val_id("channels"), alloc_int(targetAudioDecoder->channels));
 		alloc_field(info, val_id("sampleRate"), alloc_int(targetAudioDecoder->sampleRate));
+		alloc_field(info, val_id("dataFormat"), alloc_int((int)targetAudioDecoder->format));
 		return info;
 	}
 
-	value lime_audio_decoder_decode(value audio_decoder, value bytes, int frames, int format)
+	int lime_audio_decoder_decode(value audio_decoder, value output, int offset, int frames, int format)
 	{
 		AudioDecoder *targetAudioDecoder = (AudioDecoder *)val_data(audio_decoder);
-
-		Bytes data = Bytes(bytes);
-
 		AudioDataFormat targetAudioDataFormat = (AudioDataFormat)format;
 
-		int framesDecoded = targetAudioDecoder->Decode(data.b, frames, targetAudioDataFormat);
+		Bytes bytes;
+		bytes.Set(output);
 
-		switch (targetAudioDataFormat)
+		size_t result = targetAudioDecoder->Decode(bytes.b + offset, frames, targetAudioDataFormat);
+
+		if (result == -1)
 		{
-			case AudioDataFormat::S16:
+			AudioDataFormat nativeFormat = targetAudioDecoder->format;
+			int channels = targetAudioDecoder->channels;
+			int nativeByteDepth = AudioDataUtil::GetDataFormatByteDepth(nativeFormat);
 
-				data.Resize(framesDecoded * targetAudioDecoder->channels * 2);
-				break;
+			// vector gets always free'd, consider it as a stack memory variable
+			std::vector<uint8_t> tempBuffer(frames * channels * nativeByteDepth);
 
-			case AudioDataFormat::F32:
+			result = targetAudioDecoder->Decode(tempBuffer.data(), frames, nativeFormat);
 
-				data.Resize(framesDecoded * targetAudioDecoder->channels * 4);
-				break;
+			if (result != -1 && result > 0)
+			{
+				AudioDataUtil::CopyAudioData(tempBuffer.data(), nativeFormat, bytes.b + offset, targetAudioDataFormat, result, channels);
+			}
 		}
 
-		return data.Value(bytes);
+		return result;
 	}
 
 	bool lime_audio_decoder_rewind(value audio_decoder)
@@ -1906,6 +1912,33 @@ namespace lime
 	{
 		AudioDecoder *targetAudioDecoder = (AudioDecoder *)val_data(audio_decoder);
 		return allocInt64(targetAudioDecoder->Total());
+	}
+
+	double lime_audio_data_util_read_normalized(value data, int offset, int format)
+	{
+		Bytes bytes;
+		bytes.Set(data);
+
+		return AudioDataUtil::ReadNormalized(bytes.b + offset, (AudioDataFormat)format);
+	}
+
+	void lime_audio_data_util_write_normalized(value data, int offset, int format, double signal)
+	{
+		Bytes bytes;
+		bytes.Set(data);
+
+		AudioDataUtil::WriteNormalized(bytes.b + offset, (AudioDataFormat)format, signal);
+	}
+
+	void lime_audio_data_util_copy_audio_data(value source, int srcOffset, int srcFormat, value destination, int destOffset, int destFormat, int frames, int channels)
+	{
+		Bytes srcBytes;
+		srcBytes.Set(source);
+
+		Bytes destBytes;
+		destBytes.Set(destination);
+
+		AudioDataUtil::CopyAudioData(srcBytes.b + srcOffset, (AudioDataFormat)srcFormat, destBytes.b + destOffset, (AudioDataFormat)destFormat, frames, channels);
 	}
 
 	value lime_animation_decoder_open_file(value data, value type)
@@ -2183,12 +2216,15 @@ namespace lime
 	DEFINE_PRIME2(lime_audio_decoder_open_file);
 	DEFINE_PRIME2(lime_audio_decoder_open_bytes);
 	DEFINE_PRIME1(lime_audio_decoder_info);
-	DEFINE_PRIME4(lime_audio_decoder_decode);
+	DEFINE_PRIME5(lime_audio_decoder_decode);
 	DEFINE_PRIME1(lime_audio_decoder_rewind);
 	DEFINE_PRIME3(lime_audio_decoder_seek);
 	DEFINE_PRIME1(lime_audio_decoder_can_seek);
 	DEFINE_PRIME1(lime_audio_decoder_tell);
 	DEFINE_PRIME1(lime_audio_decoder_total);
+	DEFINE_PRIME3(lime_audio_data_util_read_normalized);
+	DEFINE_PRIME4v(lime_audio_data_util_write_normalized);
+	DEFINE_PRIME8v(lime_audio_data_util_copy_audio_data);
 	DEFINE_PRIME2(lime_animation_decoder_open_file);
 	DEFINE_PRIME2(lime_animation_decoder_open_bytes);
 	DEFINE_PRIME2(lime_animation_decoder_get_frame);

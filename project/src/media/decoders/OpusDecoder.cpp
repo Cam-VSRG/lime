@@ -1,6 +1,6 @@
 #include <media/decoders/OpusDecoder.h>
-#include <opusfile.h>
 #include <utils/File.h>
+#include <opusfile.h>
 
 namespace lime
 {
@@ -71,39 +71,49 @@ namespace lime
 
 		channels = op_channel_count(opusFile, -1);
 		sampleRate = 48000;
+		format = AudioDataFormat::UNKNOWN;
 		handle = (void *)opusFile;
 
 		return true;
+
 	}
 
 	size_t OpusDecoder::Decode(void *ptr, size_t frames, AudioDataFormat format)
 	{
-		int totalSamples = frames * channels;
-
-		int samplesRead = 0;
-
-		while (samplesRead < totalSamples)
+		if (format == AudioDataFormat::S16)
 		{
-			int result = 0;
+			int total = frames * channels;
+			int read = 0;
 
-			if (format == AudioDataFormat::S16)
+			while (read < total)
 			{
-				result = op_read((OggOpusFile *)handle, ((int16_t *)ptr) + samplesRead, totalSamples - samplesRead, NULL);
-			}
-			else if (format == AudioDataFormat::F32)
-			{
-				result = op_read_float((OggOpusFile *)handle, ((float *)ptr) + samplesRead, totalSamples - samplesRead, NULL);
-			}
+				int ret = op_read ((OggOpusFile *)handle, (opus_int16 *)ptr + read, total - read, NULL);
+				if (ret == OP_HOLE) continue;
+				else if (ret <= 0) break;
 
-			if (result <= 0)
-			{
-				break;
+				read += ret * channels;
 			}
 
-			samplesRead += result * channels;
+			return (size_t)(read / channels);
+		}
+		else if (format == AudioDataFormat::F32)
+		{
+			int total = frames * channels;
+			int read = 0;
+
+			while (read < total)
+			{
+				int ret = op_read_float ((OggOpusFile *)handle, (float *)ptr + read, total - read, NULL);
+				if (ret == OP_HOLE) continue;
+				else if (ret <= 0) break;
+
+				read += ret * channels;
+			}
+
+			return (size_t)(read / channels);
 		}
 
-		return samplesRead / channels;
+		return -1;
 	}
 
 	bool OpusDecoder::Rewind()

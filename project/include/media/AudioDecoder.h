@@ -11,6 +11,7 @@ namespace lime
 	  public:
 		int channels = 0;
 		int sampleRate = 0;
+		AudioDataFormat format;
 
 		virtual ~AudioDecoder() = default;
 

@@ -81,6 +81,7 @@ namespace lime
 
 		channels = mp3File->channels;
 		sampleRate = mp3File->sampleRate;
+		format = AudioDataFormat::UNKNOWN;
 		handle = (void *)mp3File;
 
 		return true;
@@ -97,7 +98,7 @@ namespace lime
 			return drmp3_read_pcm_frames_f32((drmp3 *)handle, frames, (float *)ptr);
 		}
 
-		return 0;
+		return -1;
 	}
 
 	bool MP3Decoder::Rewind()

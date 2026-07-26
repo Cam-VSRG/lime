@@ -55,6 +55,12 @@ class AudioBuffer
 	public var dataFormat:AudioDataFormat;
 
 	/**
+		Native target only.
+		The decoder for this audio buffer.
+	**/
+	public var decoder:AudioDecoder;
+
+	/**
 		The sample rate of the audio data, in Hz.
 	**/
 	public var sampleRate:Int;
@@ -64,7 +70,8 @@ class AudioBuffer
 	**/
 	public var src(get, set):Dynamic;
 
-	@:noCompletion private var __srcBuffer:#if lime_cffi ALBuffer #else Dynamic #end;
+	@:noCompletion private var __isDisposed:Bool;
+	@:noCompletion private var __srcBuffer:#if lime_openal ALBuffer #else Dynamic #end;
 	@:noCompletion private var __srcCustom:Dynamic;
 	@:noCompletion private var __srcHowl:#if lime_howlerjs Howl #else Dynamic #end;
 	@:noCompletion private var __srcHowlerDefaultSprite:String;
@@ -89,8 +96,32 @@ class AudioBuffer
 	**/
 	public function dispose():Void
 	{
+		__isDisposed = true;
+
+		#if (lime_cffi && !macro)
+		decoder = null;
+		#end
 		#if (js && html5 && lime_howlerjs)
-		__srcHowl.unload();
+		if (__srcHowl != null) __srcHowl.unload();
+		__srcHowl = null;
+		#end
+	}
+
+	/**
+		Loads the audio buffer from the resource.
+	**/
+	public function load()
+	{
+		#if (lime_cffi && !macro)
+		if (decoder == null) return;
+
+		channels = decoder.channels;
+		sampleRate = decoder.sampleRate;
+		dataFormat = decoder.dataFormat == UNKNOWN ? S16 : decoder.dataFormat;
+
+		final total = decoder.total();
+		data = new UInt8Array(Int64.toInt(total * channels * dataFormat.byteDepth));
+		decoder.decode(data.buffer, 0, Int64.toInt(total));
 		#end
 	}
 
@@ -124,10 +155,9 @@ class AudioBuffer
 		if (decoder != null)
 		{
 			var buffer:AudioBuffer = new AudioBuffer();
-			buffer.sampleRate = decoder.sampleRate;
-			buffer.channels = decoder.channels;
-			buffer.dataFormat = S16;
-			buffer.data = UInt8Array.fromBytes(decoder.decode(Int64.toInt(decoder.total()), buffer.dataFormat));
+			buffer.decoder = decoder;
+			buffer.load();
+			buffer.decoder = null;
 			return buffer;
 		}
 		#end
@@ -156,10 +186,9 @@ class AudioBuffer
 		if (decoder != null)
 		{
 			var buffer:AudioBuffer = new AudioBuffer();
-			buffer.sampleRate = decoder.sampleRate;
-			buffer.channels = decoder.channels;
-			buffer.dataFormat = S16;
-			buffer.data = UInt8Array.fromBytes(decoder.decode(Int64.toInt(decoder.total()), buffer.dataFormat));
+			buffer.decoder = decoder;
+			buffer.load();
+			buffer.decoder = null;
 			return buffer;
 		}
 		#end
@@ -188,10 +217,9 @@ class AudioBuffer
 		if (decoder != null)
 		{
 			var buffer:AudioBuffer = new AudioBuffer();
-			buffer.sampleRate = decoder.sampleRate;
-			buffer.channels = decoder.channels;
-			buffer.dataFormat = S16;
-			buffer.data = UInt8Array.fromBytes(decoder.decode(Int64.toInt(decoder.total()), buffer.dataFormat));
+			buffer.decoder = decoder;
+			buffer.load();
+			buffer.decoder = null;
 			return buffer;
 		}
 		#end
@@ -358,12 +386,7 @@ class AudioBuffer
 	// Get & Set Methods
 	@:noCompletion private function get_bitsPerSample():Int
 	{
-		return switch (dataFormat)
-		{
-			case S16: 16;
-			case F32: 32;
-			default: 0;
-		}
+		return dataFormat.byteDepth << 3;
 	}
 
 	@:noCompletion private function get_src():Dynamic
