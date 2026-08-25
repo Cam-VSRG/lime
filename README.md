@@ -5,6 +5,8 @@ Lime
 
 Lime is a flexible, lightweight layer for Haxe cross-platform developers.
 
+p
+
 Lime supports native and HTML5 targets with unified support for:
 
  * Windowing
