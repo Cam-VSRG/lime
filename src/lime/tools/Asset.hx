@@ -55,49 +55,39 @@ class Asset
 		{
 			var extension = Path.extension(path);
 			if (extension != null)
+			{
 				extension = extension.toLowerCase();
-
-			if (AssetHelper.knownExtensions.exists(extension))
-			{
-				this.type = AssetHelper.knownExtensions.get(extension);
 			}
-			else
+
+			switch (extension)
 			{
-				switch (extension)
-				{
-					case "bundle":
+				case "ogg", "m4a", "mp3", "opus":
+					this.type = AssetType.SOUND;
+
+					if (FileSystem.exists(path))
+					{
+						var stat = FileSystem.stat(path);
+
+						// if (stat.size > 1024 * 128) {
+						if (stat.size > 1024 * 1024)
+						{
+							this.type = AssetType.MUSIC;
+						}
+					}
+
+				default:
+					if (AssetHelper.knownExtensions.exists(extension))
+					{
+						this.type = AssetHelper.knownExtensions.get(extension);
+					}
+					else if (extension == "bundle")
+					{
 						this.type = AssetType.MANIFEST;
-
-					case "ogg", "m4a":
-						if (FileSystem.exists(path))
-						{
-							var stat = FileSystem.stat(path);
-
-							// if (stat.size > 1024 * 128) {
-							if (stat.size > 1024 * 1024)
-							{
-								this.type = AssetType.MUSIC;
-							}
-							else
-							{
-								this.type = AssetType.SOUND;
-							}
-						}
-						else
-						{
-							this.type = AssetType.SOUND;
-						}
-
-					default:
-						if (path != "" && System.isText(path))
-						{
-							this.type = AssetType.TEXT;
-						}
-						else
-						{
-							this.type = AssetType.BINARY;
-						}
-				}
+					}
+					else
+					{
+						this.type = (path != "" && System.isText(path)) ? AssetType.TEXT : AssetType.BINARY;
+					}
 			}
 		}
 		else
