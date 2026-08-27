@@ -28,44 +28,18 @@ class AudioDecoder
 
 			if (handle != null)
 			{
-				return new AudioDecoder(handle);
+				final decoder = new AudioDecoder(handle);
+				decoder.codec = codec;
+				decoder._path = path;
+				return decoder;
 			}
 		}
 		else
 		{
-			var oggHandle = NativeCFFI.lime_audio_decoder_open_file(path, cast OGG);
-
-			if (oggHandle != null)
+			for (codec in AudioCodec.getCodecs())
 			{
-				return new AudioDecoder(oggHandle);
-			}
-
-			var opusHandle = NativeCFFI.lime_audio_decoder_open_file(path, cast OPUS);
-
-			if (opusHandle != null)
-			{
-				return new AudioDecoder(opusHandle);
-			}
-
-			var flacHandle = NativeCFFI.lime_audio_decoder_open_file(path, cast FLAC);
-
-			if (flacHandle != null)
-			{
-				return new AudioDecoder(flacHandle);
-			}
-
-			var mp3Handle = NativeCFFI.lime_audio_decoder_open_file(path, cast MP3);
-
-			if (mp3Handle != null)
-			{
-				return new AudioDecoder(mp3Handle);
-			}
-
-			var wavHandle = NativeCFFI.lime_audio_decoder_open_file(path, cast WAV);
-
-			if (wavHandle != null)
-			{
-				return new AudioDecoder(wavHandle);
+				final decoder = AudioDecoder.fromFile(path, codec);
+				if (decoder != null) return decoder;
 			}
 		}
 		#end
@@ -89,44 +63,18 @@ class AudioDecoder
 
 			if (handle != null)
 			{
-				return new AudioDecoder(handle);
+				final decoder = new AudioDecoder(handle);
+				decoder.codec = codec;
+				decoder._bytes = bytes;
+				return decoder;
 			}
 		}
 		else
 		{
-			var oggHandle = NativeCFFI.lime_audio_decoder_open_bytes(bytes, cast OGG);
-
-			if (oggHandle != null)
+			for (codec in AudioCodec.getCodecs())
 			{
-				return new AudioDecoder(oggHandle);
-			}
-
-			var opusHandle = NativeCFFI.lime_audio_decoder_open_bytes(bytes, cast OPUS);
-
-			if (opusHandle != null)
-			{
-				return new AudioDecoder(opusHandle);
-			}
-
-			var flacHandle = NativeCFFI.lime_audio_decoder_open_bytes(bytes, cast FLAC);
-
-			if (flacHandle != null)
-			{
-				return new AudioDecoder(flacHandle);
-			}
-
-			var mp3Handle = NativeCFFI.lime_audio_decoder_open_bytes(bytes, cast MP3);
-
-			if (mp3Handle != null)
-			{
-				return new AudioDecoder(mp3Handle);
-			}
-
-			var wavHandle = NativeCFFI.lime_audio_decoder_open_bytes(bytes, cast WAV);
-
-			if (wavHandle != null)
-			{
-				return new AudioDecoder(wavHandle);
+				final decoder = AudioDecoder.fromBytes(bytes, codec);
+				if (decoder != null) return decoder;
 			}
 		}
 		#end
@@ -152,6 +100,11 @@ class AudioDecoder
 	public var sampleRate(default, null):Int = 0;
 
 	/**
+		The audio codec the data was formatted in.
+	**/
+	public var codec:AudioCodec;
+
+	/**
 		The audio data source format.
 		
 		- `UNKNOWN` = Unknown data format, recognized/decoded as `S16` anyway if loaded
@@ -163,11 +116,11 @@ class AudioDecoder
 	**/
 	public var dataFormat:AudioDataFormat = UNKNOWN;
 
-	@:noCompletion
-	private var handle:Dynamic;
+	@:noCompletion private var handle:Dynamic;
+	@:noCompletion private var _path:String;
+	@:noCompletion private var _bytes:Bytes;
 
-	@:noCompletion
-	private function new(handle:Dynamic):Void
+	@:noCompletion private function new(handle:Dynamic):Void
 	{
 		this.handle = handle;
 
